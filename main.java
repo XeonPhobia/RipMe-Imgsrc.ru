@@ -28,17 +28,74 @@ public class main {
 
 
 	public static void main(String[] args) {
-		output_TO_BE_DownloadableList = getURLsFromFile();
-		System.out.println(output_TO_BE_DownloadableList.get(0));
-		while(output_TO_BE_DownloadableList.size() >  0) {
-			getImageURLFromURL(output_TO_BE_DownloadableList.get(0));
+		
+//		Begin this program by running the function seed()
+		outputDownloadableList = getURLsFromFile("Acceptable");
+		outputNOTDownloadableList = getURLsFromFile("Retry");
+		outputREJECTEDDownloadableList = getURLsFromFile("Rejectable");
+		output_TO_BE_DownloadableList = getURLsFromFile("alrightRoundTwo");
+		
+		System.out.println("Number of albums accepted:" + outputDownloadableList.size() );
+		System.out.println("Number of albums retriable:" + outputNOTDownloadableList.size() );
+		System.out.println("Number of albums rejected:" + outputREJECTEDDownloadableList.size() );
+		System.out.println("Number of albums to be:" + output_TO_BE_DownloadableList.size() );
+		
+		int GrandTotal = outputDownloadableList.size() + outputNOTDownloadableList.size() + outputREJECTEDDownloadableList.size() + output_TO_BE_DownloadableList.size();
+		System.out.println("Total number of URLs found:" + GrandTotal);
+		if(GrandTotal == 0){
+			seed("http://imgsrc.ru/main/search.php?str=horse&nopass=on&cat=");
 			downloadListToFile();
-			output_TO_BE_DownloadableList.remove(0);			
 		}
+		
+//		output_TO_BE_DownloadableList = getURLsFromFile();
+//		System.out.println(output_TO_BE_DownloadableList.get(0));
+//		while(output_TO_BE_DownloadableList.size() >  0) {
+//			getImageURLFromURL(output_TO_BE_DownloadableList.get(0));
+//			downloadListToFile();
+//			output_TO_BE_DownloadableList.remove(0);			
+//		}
 
 
 //		Print not downloaded URLs to file
-		downloadListToFile();
+//		downloadListToFile();
+		
+//		Make a new search with a URL like 
+//		http://imgsrc.ru/main/search.php?str=boy&nopass=on&cat=
+//		Into the file retry2
+//		expander();
+		
+	}
+	
+	public static void seed(String SeedString) {
+		try {
+		Document doc = null;
+		Document doc2 = null;
+		doc = Jsoup.connect(SeedString).get();
+			for (Element thumb : doc.select("a")) {
+	    		String image = thumb.attr("href");
+	    		if(image.indexOf("&page=") > 0){   
+	    		System.out.println(image);
+	    		doc2 = Jsoup.connect("http://imgsrc.ru" + image).get();
+	    			for (Element thumb2 : doc2.select("a")) {
+	    				String image2 = thumb2.attr("href");
+	    				if(image2.indexOf("?ad=") > 0){   
+	    					System.out.println(image2);
+	    					outputDownloadableList.add(image2);
+	    				}}
+	    		}	 
+	    		if(image.indexOf("?ad=") > 0){   
+		    		System.out.println(image);
+		    		outputDownloadableList.add(image + "&pwd=");
+		    		}	    		
+			}
+		}
+		catch(IOException e) {
+			System.out.println("This is not a valid search URL:" + SeedString);
+		}
+		
+	
+		
+		
 	}
 	
 	public static void downloadListToFile() {
@@ -109,7 +166,7 @@ public class main {
 			}
 	}
 		
-	public void expander() {
+	public static void expander() {
 		Document doc = null;
 		int indexNominus = 0;
 		Integer maxCounterAlbumPages;
@@ -195,12 +252,12 @@ public class main {
 
 	}
 
-	public static ArrayList<String> getURLsFromFile() {
+	public static ArrayList<String> getURLsFromFile(String FileString) {
 //		Variabler utilized
 		ArrayList<String> list = new ArrayList<String>();
 		
 		try {
-		Scanner s = new Scanner(new File("C:\\Users\\pc\\git\\Alright"));
+		Scanner s = new Scanner(new File("C:\\Users\\pc\\git\\" + FileString));
 
 		while (s.hasNextLine()){
 			list.add(s.nextLine());
@@ -304,6 +361,5 @@ public class main {
 		}
 		
 	}
-	
 	
 }	
